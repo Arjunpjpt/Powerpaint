@@ -1,0 +1,563 @@
+/*
+ * TCSS 305 - Power Paint
+ */
+package view;
+
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import tools.EllipseTool;
+import tools.EraserTool;
+import tools.LineTool;
+import tools.PencilTool;
+import tools.RectangleTool;
+import view.ColorIcon;
+import view.CenterPanel;
+
+
+/**
+ * This is a main class to setup GUI appearance and function for the power paint.
+ * @author Arjun Prajapati
+ * @version November 11, 2017
+ */
+public class PowerPaintGui {
+    /** primary uw purple color. */
+    public static final Color UW_PURPLE = new Color(51, 0, 111);
+    
+    /** secondary UW gold color. */
+    public static final Color UW_GOLD = new Color(232, 211, 162);
+    
+    /**index for pencil.*/
+    private static final int PENCIL_INDEX = 0;
+    /**index for line.*/
+    private static final int LINE_INDEX = 1;
+    /**index for rectangle.*/
+    private static final int RECTANGLE_INDEX = 2;
+    /**index for ellipse.*/
+    private static final int ELLIPSE_INDEX = 3;
+    /**index for eraser.*/
+    private static final int ERASER_INDEX = 4;
+    
+
+    /** Major tick spacing for JSlider. */
+    public static final int MAJOR_SPACING = 5;
+    
+    /** Minor tick spacing for JSlider. */
+    public static final int MINOR_SPACING = 1;
+    
+    /** the default value of the slider. */
+    public static final int SLIDER = 10;
+    
+
+    
+    
+    /** directory for the UW image. */
+    public static final String ICON_DIRECTORY = "images/uw.png";
+    
+    /** to setup UW icon. */
+    public static final Icon ICON = new ImageIcon(ICON_DIRECTORY);
+    
+
+    
+    
+    /** window frame. */
+    private JFrame myFrame;
+    
+    /** setup the menu bar. */
+    private JMenuBar myMenuBar;
+    
+    /** Tool bar for the window. */
+    private JToolBar myToolBar;
+    
+    /** the draw panel of the window. */
+    private CenterPanel myCenterPanel;
+    
+    /** Button group to store the radio button. */
+    private final ButtonGroup myRadioButtonGroup = new ButtonGroup();
+    
+    /** Button group to store the tool button. */
+    private final ButtonGroup myToolButtonGroup = new ButtonGroup();
+    
+    /** Pencil Tool action. */
+    private final Action myPencilAction = new PencilAction();
+    
+    /** Line Tool action. */
+    private final Action myLineAction = new LineAction();
+
+    /** Rectangle Tool action. */
+    private final Action myRectangleAction = new RectangleAction();
+    
+    /** Ellipse Tool action. */
+    private final Action myEllipseAction = new EllipseAction();
+    
+    /** Eraser Tool action. */
+    private final Action myEraserAction = new EraserAction();
+    
+    /** clear button. */
+    private JMenuItem myCLearButton;
+
+    /** the clear button in the option menu. */
+    private List<JToggleButton> myToggleButtonList = new ArrayList<JToggleButton>();
+    
+    
+    /**
+     * constructor to call the method.
+     */
+    public PowerPaintGui() {
+        createAndShowGUI();
+    }
+    
+    /**
+     * This method to setup GUI appearance.
+     */
+    public void createAndShowGUI() {
+        
+        // setup frame
+        myFrame = new JFrame("Assignment 5");
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        final Image im = Toolkit.getDefaultToolkit().getImage(ICON_DIRECTORY);
+        myFrame.setIconImage(im);
+        
+        // set up the drawing panel
+        myCenterPanel = new CenterPanel(this);
+        myMenuBar = new JMenuBar();
+        myMenuBar.add(buildOptionMenu());
+        myMenuBar.add(buildToolMenu());
+        myMenuBar.add(buildHelpMenu());
+        // to build tool bar
+        myToolBar = new JToolBar();
+        buildToolBar();
+       // setup menubar and tools
+        myFrame.setJMenuBar(myMenuBar);
+        myFrame.add(myCenterPanel, BorderLayout.CENTER);
+        myFrame.add(myToolBar, BorderLayout.SOUTH);
+
+        myFrame.pack();
+        myFrame.setVisible(true);
+    }
+    
+   
+    
+    /**
+     * This method is to build option menu.
+     * @return JMenu
+     */
+    private JMenu buildOptionMenu() {
+        
+        final JMenu optionMenu = new JMenu("Option");
+        optionMenu.setMnemonic(KeyEvent.VK_O);
+        optionMenu.add(buildThicknessMenu());
+        
+        final JMenuItem primaryColor = new JMenuItem("Primary Color...");
+        final JMenuItem secondaryColor = new JMenuItem("Secondary Color...");
+        primaryColor.setMnemonic(KeyEvent.VK_P);
+        secondaryColor.setMnemonic(KeyEvent.VK_S);
+        primaryColorMenu(primaryColor);
+        secondaryColorMenu(secondaryColor);
+
+        myCLearButton = new JMenuItem("Clear");
+        myCLearButton.setMnemonic(KeyEvent.VK_C);
+        myCLearButton.setEnabled(false);
+        myCLearButton.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                myCLearButton.setEnabled(false);
+                myCenterPanel.clear();
+                myCenterPanel.repaint();
+            }
+            
+        });
+        
+        // add them one by one to the option menu
+//        option.add(thicknessButton);
+        optionMenu.addSeparator();
+        optionMenu.add(primaryColor);
+        optionMenu.add(secondaryColor);
+        optionMenu.addSeparator();
+        optionMenu.add(myCLearButton);
+//        myMenuBar.add(option);
+        return optionMenu;
+    }
+    
+    /**
+     * method to setup primary color.
+     * 
+     * @param theColor 
+     */
+    private void primaryColorMenu(final JMenuItem theColor) {
+        // menu icon for primary color
+        final ColorIcon iconColor;
+
+        iconColor = new ColorIcon(UW_PURPLE);
+        theColor.setIcon(iconColor);
+        theColor.addActionListener(new ActionListener() {
+                
+                @Override
+                public void actionPerformed(final ActionEvent theEvent) {
+                
+                final Color result = JColorChooser.showDialog(null, null, null);
+                if (!(result == null)) {
+                    iconColor.setColor(result);
+                    myCenterPanel.setPrimaryColor(result);
+                }
+                }
+            });
+
+        
+        
+    }
+     
+    /**
+     * method to setup primary color.
+     * 
+     * @param theColorMenu 
+     */
+    private void secondaryColorMenu(final JMenuItem theColorMenu) {
+        // menu icon for secondary color
+        final ColorIcon iconColor;
+        iconColor = new ColorIcon(UW_GOLD);
+        theColorMenu.setIcon(iconColor);
+        theColorMenu.addActionListener(new ActionListener() {
+                
+                @Override
+                public void actionPerformed(final ActionEvent theEvent) {
+                    final Color result = JColorChooser.showDialog(null, null, null);
+                    if (!(result == null)) {
+                        iconColor.setColor(result);
+                        myCenterPanel.setSecondaryColor(result);
+                    }
+                }
+        });
+            
+    }
+     
+    
+    /**
+     * Building the JSlider.
+     * @return JMenu , return the JSlider for the JMenu.
+     */
+    public JMenu buildThicknessMenu() {
+        final JMenu thicknessMenu = new JMenu("Thickness");
+        thicknessMenu.setMnemonic(KeyEvent.VK_T);
+        final JSlider thicknessSlider = new JSlider(JSlider.HORIZONTAL,
+                                                    0, 20, SLIDER);
+        thicknessMenu.add(thicknessSlider);
+        thicknessSlider.setMajorTickSpacing(MAJOR_SPACING);
+        thicknessSlider.setMinorTickSpacing(MINOR_SPACING);
+        thicknessSlider.setPaintLabels(true);
+        thicknessSlider.setPaintTicks(true);
+        
+        thicknessSlider.addChangeListener(new ChangeListener() {
+            @Override
+
+            public void stateChanged(final ChangeEvent theEvent) {
+                final int thickness = thicknessSlider.getValue();
+//                System.out.println(thickness);
+                myCenterPanel.setThick(thickness);
+            }
+        });
+        return thicknessMenu;
+        
+    }
+
+    /**
+     * method to setup the Tool menu.
+     * @return JMenu
+     */
+    private JMenu buildToolMenu() {
+        final JMenu toolMenu = new JMenu("Tool");
+        toolMenu.setMnemonic(KeyEvent.VK_T);
+        
+        final JRadioButtonMenuItem pencil = new JRadioButtonMenuItem(new PencilAction());
+        final JRadioButtonMenuItem line = new JRadioButtonMenuItem(myLineAction);
+        final JRadioButtonMenuItem rectangle = new JRadioButtonMenuItem(myRectangleAction);
+        final JRadioButtonMenuItem ellipse = new JRadioButtonMenuItem(myEllipseAction);
+        final JRadioButtonMenuItem eraser = new JRadioButtonMenuItem(myEraserAction);
+
+        myRadioButtonGroup.add(pencil);
+        myRadioButtonGroup.add(line);
+        myRadioButtonGroup.add(rectangle);
+        myRadioButtonGroup.add(ellipse);
+        myRadioButtonGroup.add(eraser);
+        
+        toolMenu.add(pencil);
+        toolMenu.add(line);
+        toolMenu.add(rectangle);
+        toolMenu.add(ellipse);
+        toolMenu.add(eraser);
+
+        return toolMenu;
+    }
+
+
+    /**
+     * method to setup the help menu.
+     * @return JMenu
+     */
+    private JMenu buildHelpMenu() {
+        
+        // create a menu and a menu item object
+        final JMenu helpMenu = new JMenu("Help");  
+        helpMenu.setMnemonic(KeyEvent.VK_H);
+        
+        final JMenuItem aboutButton = new JMenuItem("About...");
+        aboutButton.setMnemonic(KeyEvent.VK_A);
+        helpMenu.add(aboutButton);
+        
+        
+        aboutButton.addActionListener(new ActionListener() {
+           
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                JOptionPane.showMessageDialog(null, "Arjun Prajapati\nAutumn 2017\nTCSS "
+                            + "305 Assignment 5", "About",
+                                             JOptionPane.INFORMATION_MESSAGE, ICON);
+            }
+        });
+        
+        return helpMenu;
+    }
+
+    /**
+     * method to setup the tool bar.
+     */
+    private void buildToolBar() {
+        final JToggleButton pencil = new JToggleButton(myPencilAction);
+        final JToggleButton line = new JToggleButton(myLineAction);
+        final JToggleButton rectangle = new JToggleButton(myRectangleAction);
+        final JToggleButton ellipse = new JToggleButton(myEllipseAction);
+        final JToggleButton eraser = new JToggleButton(myEraserAction);
+         // setup the image for the tool.
+        setToggleButton(pencil, "images/pencil.gif");
+        setToggleButton(line, "images/line.gif");
+        setToggleButton(rectangle, "images/rectangle.gif");
+        setToggleButton(ellipse, "images/ellipse.gif");
+        setToggleButton(eraser, "images/eraser.gif");
+        // add the tools to the tool bar.
+        myToolBar.add(pencil); 
+        myToolBar.add(line);
+        myToolBar.add(rectangle);
+        myToolBar.add(ellipse);
+        myToolBar.add(eraser);
+    }
+    
+
+
+    /**
+     * This method sets up the icon of the buttons, then add them to a group.
+     * 
+     * @param theButton the button that is being handle 
+     * @param theDirectory the directory of the icon
+     */
+    private void setToggleButton(final JToggleButton theButton
+                                             , final String theDirectory) {
+        myToolButtonGroup.add(theButton);
+        myToggleButtonList.add(theButton);
+        theButton.setIcon(new ImageIcon(theDirectory));
+    }
+    
+    /** 
+    * set the focus on the selected button.
+    * @param theIndex , index
+    */
+    public void setFocus(final int theIndex) {
+        for (int index = 0; index < myToggleButtonList.size(); index++) {
+            if (index == theIndex) {
+                myToggleButtonList.get(index).setFocusable(true);
+                myToggleButtonList.get(index).requestFocusInWindow();
+//               System.out.println(myToggleButtonList.get(index));
+               
+            } else {
+                myToggleButtonList.get(index).setFocusable(false);
+            }
+        }
+    }
+    
+    /**
+     * to Enable the clear button.
+     * @param theIsEnable enable or not.
+     */
+    public void setEnable(final boolean theIsEnable) {
+        myCLearButton.setEnabled(theIsEnable);
+    }
+    
+     /** Class for the action of pencil.
+     * @author Arjun Prajapati
+     * @version November 11, 2017
+     */
+    class PencilAction extends AbstractAction {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+        /**
+         * Constructor for pencil.
+         */
+        PencilAction() {
+            super("Pencil");
+            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_P);
+            putValue(Action.SELECTED_KEY, false);
+
+
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent theActionEvent) {
+            myCenterPanel.setTool(new PencilTool());
+            setFocus(PENCIL_INDEX);
+        }
+    }
+    
+
+    /** Class for the action of line.
+     * @author Arjun Prajapati
+     * @version November 11, 2017
+     */
+    class LineAction extends AbstractAction {
+        
+        
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * Constructor for line.
+         */
+        LineAction() {
+            super("Line");
+            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
+            putValue(Action.SELECTED_KEY, true);
+        }
+        
+        @Override
+        public void actionPerformed(final ActionEvent theActionEvent) {
+            myCenterPanel.setTool(new LineTool());
+            setFocus(LINE_INDEX);
+
+        }
+    }
+
+    /** Class for the action of rectanle.
+     * @author Arjun Prajapati
+     * @version November 11, 2017
+     */
+    class RectangleAction extends AbstractAction {
+        
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+        /**
+         * Constructor for rectangle.
+         */
+        RectangleAction() {
+            super("Rectangle");
+            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_R);
+            putValue(Action.SELECTED_KEY, false);
+        }
+        
+        @Override
+        public void actionPerformed(final ActionEvent theActionEvent) {
+            myCenterPanel.setTool(new RectangleTool());
+            setFocus(RECTANGLE_INDEX);
+
+        }
+          
+          
+    }
+
+    /** Class for the action of Ellipse.
+     * @author Arjun Prajapati
+     * @version November 11, 2017
+     */
+    class EllipseAction extends AbstractAction {
+        
+        
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+        /**
+         * Constructor for ellipse.
+         */
+        EllipseAction() {
+            super("Ellipse");
+            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_E);
+            putValue(Action.SELECTED_KEY, false);
+
+        }
+        
+        @Override
+        public void actionPerformed(final ActionEvent theActionEvent) {
+            myCenterPanel.setTool(new EllipseTool());
+            setFocus(ELLIPSE_INDEX);
+
+        }
+    } 
+
+    /** Class for the action of Eraser.
+     * @author Arjun Prajapati
+     * @version November 11, 2017
+     */
+    class EraserAction extends AbstractAction {
+        
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * Constructor for Eraser.
+         */
+        EraserAction() {
+            super("Eraser");
+            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+            putValue(Action.SELECTED_KEY, false);
+
+            
+        }
+        
+        @Override
+        public void actionPerformed(final ActionEvent theActionEvent) {
+            
+            myCenterPanel.setTool(new EraserTool());
+            setFocus(ERASER_INDEX);
+
+        }
+
+    }
+
+        
+}
+
+
+

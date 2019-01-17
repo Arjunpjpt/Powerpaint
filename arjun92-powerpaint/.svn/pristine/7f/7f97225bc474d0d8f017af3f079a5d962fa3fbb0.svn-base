@@ -1,0 +1,38 @@
+/*
+ * TCSS 305 - Power Paint
+ */
+package tools;
+
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
+
+/**
+ * Tools to draw ellipse.
+ * @author Arjun Prajapati
+ * @version November 11, 2017
+ */
+public interface Tools {
+    /**
+     * method to draw a shape.
+     * @param theShape
+     * @param theStartPoint
+     * @param theEvent
+     */
+    void draw(Shape theShape, Point theStartPoint, MouseEvent theEvent);
+    
+    /**
+     * method return shape.
+     * @param theEvent
+     * @return Shape
+     */
+    Shape setNewShape(final MouseEvent theEvent);
+    /**
+     * method to get description of tool.
+     * @return String
+     */
+    String getDescription();
+    
+    }

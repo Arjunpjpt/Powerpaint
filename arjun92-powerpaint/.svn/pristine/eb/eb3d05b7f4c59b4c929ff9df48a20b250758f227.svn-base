@@ -1,0 +1,73 @@
+/*
+ * TCSS 305 - Power Paint
+ */
+
+package view;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import javax.swing.Icon;
+
+/**
+ *  Method to setup the color icon.
+ *  
+ * @author Arjun Prajapati
+ * @version November 11, 2017
+ */
+public class ColorIcon implements Icon {
+    
+    /** the height of the color icon. */
+    public static final int HEIGHT = 14;
+    
+    /** the width of the color icon. */
+    public static final int WIDTH = 14;
+
+    /** to store the color value. */
+    private Color myColor;
+    
+    /**
+     * constructor to initialize the color value.
+     * @param theColor , to initialize the color.
+     */
+    public ColorIcon(final Color theColor) {
+        myColor = theColor;
+    }
+    
+    /**
+     * method to return the color.
+     * @return Color
+     */
+    public Color getColor() {
+        return myColor;
+    }
+    
+    /**
+     * Method to set the color.
+     * @param theColor 
+     */
+    public void setColor(final Color theColor) {
+        myColor = theColor;
+    }
+
+    @Override
+    public int getIconHeight() {
+        return HEIGHT;
+    }
+
+    @Override
+    public int getIconWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public void paintIcon(final Component theComponent, final Graphics theGraphics
+                          , final int theWidth, final int theHeight) {
+        theGraphics.setColor(myColor);
+        theGraphics.fillRect(theWidth, theHeight, WIDTH, HEIGHT);
+        theGraphics.setColor(Color.BLACK);
+        theGraphics.drawRect(theWidth, theHeight, WIDTH, HEIGHT);
+        
+    }
+
+}
